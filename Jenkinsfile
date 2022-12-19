@@ -59,10 +59,10 @@ pipeline {
               sh "echo '_authToken=${KOODIVARAMU_TOKEN}' >> .npmrc"
 
               ["styles", "ui", "icons"].each {
-                if (env."previous_${it}_library_version" == env."${it}_library_version" && !params."PUBLISH_${it.toUpperCase()}") {
-                  echo "${it} version ${getVersion(it)} is already published"
-                  return
-                }
+                //if (env."previous_${it}_library_version" == env."${it}_library_version" && !params."PUBLISH_${it.toUpperCase()}") {
+                //  echo "${it} version ${getVersion(it)} is already published"
+                //  return
+                //}
                 sh "npx nx build ${it}"
                 sh "npm run publish:${it}"
                 echo "Published library ${it}"
