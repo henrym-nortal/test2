@@ -62,7 +62,7 @@ pipeline {
               '''
 
               sh '''
-              npm install
+              npm install -g --silent gh-pages@2.0.1
               gh-pages -d docs/build/html --message 'chore: update github pages [skip ci]'
               '''
 
