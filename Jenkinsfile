@@ -42,7 +42,7 @@ pipeline {
     stage('CI') {
       agent {
         docker {
-          image 'nexus.riaint.ee:8500/node:lts'
+          image 'node:latest'
         }
       }
       environment {
