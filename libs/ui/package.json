@@ -18,6 +18,6 @@
     "@ria/veera-icons": "^2.3.0"
   },
   "publishConfig": {
-    "registry": "https://nexus.riaint.ee/repository/sun-npm-local/"
+    "registry": "https://koodivaramu.eesti.ee/api/v4/projects/433/packages/npm/"
   }
 }
