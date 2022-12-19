@@ -40,9 +40,6 @@ pipeline {
       }
     }
     stage('CI') {
-      when {
-        expression { !env.skip_ci }
-      }
       agent {
         docker {
           image 'nexus.riaint.ee:8500/node:lts'
@@ -52,67 +49,27 @@ pipeline {
         HOME = "${env.WORKSPACE}"
       }
       stages {
-        stage('npm install') {
-          steps {
-            sh 'npm config set registry https://nexus.riaint.ee/repository/npm-public/'
-            sh "npm ci"
+        stage('deploy storybook') {
+          environment {
+            GITHUB = credentials('jenkins-cvi-github')
           }
-        }
-        stage('code analysis') {
-          steps {
-            sh "npm run generate-icons"
-            sh "npx nx workspace-lint"
-            sh "npx nx affected --base=HEAD~1 --target=lint --parallel=3"
-            sh "npx nx run-many --all --target=test --parallel --coverage --coverageReporters=lcov"
-          }
-          post {
-            always {
-              junit 'reports/jest/*.xml'
-            }
-          }
-        }
-        stage('verify build') {
           steps {
             script {
-              ["styles", "ui", "icons"].each {
-                sh "npx nx build ${it}"
-             }
+              sh '''
+              git config --global user.name 'sun-release-bot'
+              git config --global user.email 'sun-release-bot@example.com'
+              git remote set-url origin https://${GITHUB_USR}:${GITHUB_PSW}@github.com/henrymae/test.git
+              '''
+
+              sh "npm run deploy-storybook"
+
+              sh '''
+              git add docs
+              git commit -m \"chore: update github pages [skip ci] \"
+              git push origin release --tags
+              '''
             }
           }
-        }
-        stage('get affected projects') {
-          steps {
-            script {
-              env.affected_libraries = sh ( script: "npx nx print-affected --base=HEAD~1 --select=projects --type=lib", returnStdout: true).trim()
-              echo "Affected libraries: ${env.affected_libraries}"
-
-              env.affected_apps = sh ( script: "npx nx print-affected --base=HEAD~1 --select=projects --type=app", returnStdout: true).trim()
-              echo "Affected apps: ${env.affected_apps}"
-            }
-          }
-        }
-      }
-    }
-
-    stage('deploy storybook') {
-      environment {
-        GITHUB = credentials('jenkins-cvi-github')
-      }
-      steps {
-        script {
-          sh '''
-          git config --global user.name 'sun-release-bot'
-          git config --global user.email 'sun-release-bot@example.com'
-          git remote set-url origin https://${GITHUB_USR}:${GITHUB_PSW}@github.com/henrymae/test.git
-		  '''
-
-          sh "npm run deploy-storybook"
-
-		  sh '''
-          git add docs
-          git commit -m \"chore: update github pages [skip ci] \"
-          git push origin release --tags
-          '''
         }
       }
     }
