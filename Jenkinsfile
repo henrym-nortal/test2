@@ -61,12 +61,15 @@ pipeline {
               git remote set-url origin https://${GITHUB_USR}:${GITHUB_PSW}@github.com/henrymae/test.git
               '''
 
-              sh "npm run deploy-storybook"
+              sh '''
+              npm install
+              gh-pages -d docs/build/html --message 'chore: update github pages [skip ci]'
+              '''
 
               sh '''
-              git add docs
-              git commit -m \"chore: update github pages [skip ci] \"
-              git push origin release --tags
+              #git add docs
+              #git commit -m \"chore: update github pages [skip ci] \"
+              #git push origin release --tags
               '''
             }
           }
