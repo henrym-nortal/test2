@@ -56,7 +56,7 @@ pipeline {
           steps {
             script {
               sh 'echo "registry=https://koodivaramu.eesti.ee/api/v4/projects/433/packages/npm/" > .npmrc'
-              sh "echo '_authToken=${KOODIVARAMU_TOKEN}' >> .npmrc"
+              sh "echo '//koodivaramu.eesti.ee/api/v4/projects/433/packages/npm/:_authToken=${KOODIVARAMU_TOKEN}' >> .npmrc"
 
               ["styles", "ui", "icons"].each {
                 //if (env."previous_${it}_library_version" == env."${it}_library_version" && !params."PUBLISH_${it.toUpperCase()}") {
