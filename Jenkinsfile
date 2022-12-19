@@ -109,32 +109,6 @@ pipeline {
               env.previous_styles_library_version = getVersion("styles")
               env.previous_ui_library_version = getVersion("ui")
               env.previous_icons_library_version = getVersion("icons")
-
-              ["styles", "ui", "icons", "storybook"].each {
-                try {
-                  sh "npx nx run ${it}:version"
-                  if (it == 'storybook') {
-                    env.storybook_library_version = getVersion("storybook")
-                    echo "Current storybook version: ${env.storybook_library_version}"
-                  }
-                } catch (e) {
-                  def newVersion = getVersion(it)
-                  if (env."previous_${it}_library_version" == getVersion(it)) {
-                    throw e
-                  }
-                  def tag = "${it}-${newVersion}"
-                  def tagExists = sh ( script: "git tag -l ${tag}", returnStdout: true).trim()
-                  if (tagExists) {
-                    sh "git tag -d ${tag}"
-                    sh "git push origin :refs/tags/${tag}"
-                  }
-                  throw e
-                }
-
-                env.styles_library_version = getVersion("styles")
-                env.ui_library_version = getVersion("ui")
-                env.icons_library_version = getVersion("icons")
-              }
             }
           }
         }
@@ -188,25 +162,6 @@ pipeline {
             sh "docker push ${HARBOR_DOCKER_IMAGE}:${DOCKER_IMAGE_TAG}"
             sh "docker push ${HARBOR_DOCKER_IMAGE}:latest"
           }
-        }
-      }
-    }
-    stage('deploy storybook: dev') {
-      when {
-        allOf {
-          expression { !env.skip_ci }
-          expression { isMaster() && affected("storybook") || waitForUserApproval(100, 'Deploy to dev?')}
-          expression { return currentBuild.result == null || currentBuild.result == 'SUCCESS' }
-        }
-      }
-      environment {
-        HELM_KUBEAPISERVER = "https://rp-rancher.opnd.eu/k8s/clusters/c-zf2ts"
-        HELM_KUBETOKEN = credentials('sun-dev-k8s-token')
-        ENV = "dev"
-      }
-      steps {
-        script {
-          deploy();
         }
       }
     }
