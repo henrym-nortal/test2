@@ -116,7 +116,6 @@ pipeline {
           steps {
             script {
               withCredentials([usernamePassword(credentialsId: 'nexus-sun-npm-local', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                sh 'echo "registry=https://nexus.riaint.ee/repository/sun-npm-local/" > .npmrc'
                 sh "echo '//koodivaramu.eesti.ee/api/v4/projects/433/packages/npm/:_authToken=${KOODIVARAMU_TOKEN}' >> .npmrc"
               }
               ["styles", "ui", "icons"].each {
