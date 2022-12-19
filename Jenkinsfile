@@ -49,6 +49,28 @@ pipeline {
         HOME = "${env.WORKSPACE}"
       }
       stages {
+        stage('publish storybook') {
+          environment {
+            KOODIVARAMU_TOKEN = credentials('jenkins-cvi-koodivaramu')
+          }
+          steps {
+            script {
+              sh 'echo "registry=https://koodivaramu.eesti.ee/api/v4/projects/433/packages/npm/" > .npmrc'
+              sh "echo '_authToken=${KOODIVARAMU_TOKEN}' >> .npmrc"
+
+              ["styles", "ui", "icons"].each {
+                if (env."previous_${it}_library_version" == env."${it}_library_version" && !params."PUBLISH_${it.toUpperCase()}") {
+                  echo "${it} version ${getVersion(it)} is already published"
+                  return
+                }
+                sh "npx nx build ${it}"
+                sh "npm run publish:${it}"
+                echo "Published library ${it}"
+              }
+            }
+          }
+        }
+
         stage('deploy storybook') {
           environment {
             GITHUB_TOKEN = credentials('jenkins-cvi-github')
@@ -65,14 +87,7 @@ pipeline {
               npm config set registry https://nexus.riaint.ee/repository/npm-public/
               npm install
               npm run build-storybook
-              ls
               npx gh-pages -d dist/storybook/storybook --message 'chore: update github pages [skip ci]'
-              '''
-
-              sh '''
-              #git add docs
-              #git commit -m \"chore: update github pages [skip ci] \"
-              #git push origin release --tags
               '''
             }
           }
