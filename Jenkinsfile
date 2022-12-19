@@ -58,19 +58,6 @@ pipeline {
             sh "npm ci"
           }
         }
-        stage('code analysis') {
-          steps {
-            sh "npm run generate-icons"
-            sh "npx nx workspace-lint"
-            sh "npx nx affected --base=HEAD~1 --target=lint --parallel=3"
-            sh "npx nx run-many --all --target=test --parallel --coverage --coverageReporters=lcov"
-          }
-          post {
-            always {
-              junit 'reports/jest/*.xml'
-            }
-          }
-        }
         stage('verify build') {
           steps {
             script {
@@ -90,52 +77,6 @@ pipeline {
               echo "Affected apps: ${env.affected_apps}"
             }
           }
-        }
-      }
-    }
-    stage('cypress tests') {
-      when {
-         expression { !env.skip_ci }
-      }
-      agent {
-        docker {
-          image 'nexus.riaint.ee:8500/cypress/base:18.6.0'
-        }
-      }
-      environment {
-        HOME = "${env.WORKSPACE}"
-      }
-      steps {
-        sh 'npm config set registry https://nexus.riaint.ee/repository/npm-public/'
-        sh 'npm ci'
-        sh 'npm run generate-icons'
-        sh 'npm run storybook:compodoc'
-        sh 'npx nx run ui-e2e:e2e'
-      }
-      post {
-        always {
-          junit 'reports/cypress/*.xml'
-        }
-      }
-    }
-    stage('sonarqube analysis') {
-      when {
-        expression { !env.skip_ci }
-      }
-      agent {
-        docker {
-          image 'nexus.riaint.ee:8500/sonarsource/sonar-scanner-cli:4.6'
-          args "-u 0 -t"
-        }
-      }
-      steps {
-        withSonarQubeEnv('RIA SonarQube') {
-          sh "sonar-scanner"
-        }
-      }
-      post {
-        always {
-          sh "chmod -R 777 .";
         }
       }
     }
