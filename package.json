@@ -13,7 +13,7 @@
     "workspace-lint": "nx workspace-lint --uncommitted",
     "storybook:compodoc": "npx compodoc -p ./tsconfig.compodoc.json -e json -d ./libs/storybook/.storybook --disableLifeCycleHooks --disableInternal",
     "storybook": "npm run generate-icons && npm run storybook:compodoc && nx run storybook:storybook",
-    "build-storybook": "nx run storybook:build-storybook",
+    "build-storybook": "npm run generate-icons && npm run storybook:compodoc && nx run storybook:build-storybook",
     "prepare": "husky install",
     "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\"",
     "generate-icons": "svg-to-ts-files",
@@ -23,7 +23,8 @@
     "publish:styles": "npm publish dist/libs/styles",
     "publish:ui": "npm publish dist/libs/ui",
     "publish:icons": "npm publish dist/libs/icons",
-    "cy:ui": "npx cypress open --project=apps/ui-e2e"
+    "cy:ui": "npx cypress open --project=apps/ui-e2e",
+    "deploy-storybook": "gh-pages -d dist/storybook/storybook"
   },
   "private": true,
   "dependencies": {
@@ -45,7 +46,8 @@
     "sanitize-html": "2.7.1",
     "svg-to-ts": "^8.8.1",
     "tslib": "^2.3.0",
-    "zone.js": "~0.11.4"
+    "zone.js": "~0.11.4",
+    "gh-pages": "^4.0.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "~14.2.10",
