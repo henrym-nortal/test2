@@ -65,7 +65,7 @@ pipeline {
               npm config set registry https://nexus.riaint.ee/repository/npm-public/
               npm install
               ls
-              gh-pages -d docs/build/html --message 'chore: update github pages [skip ci]'
+              npx gh-pages -d docs/build/html --message 'chore: update github pages [skip ci]'
               '''
 
               sh '''
