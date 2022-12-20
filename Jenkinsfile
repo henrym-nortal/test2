@@ -113,11 +113,12 @@ pipeline {
           }
         }
         stage('publish libraries') {
+          environment {
+            KOODIVARAMU_TOKEN = credentials('jenkins-cvi-koodivaramu')
+          }
           steps {
             script {
-              withCredentials([usernamePassword(credentialsId: 'nexus-sun-npm-local', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                sh "echo '//koodivaramu.eesti.ee/api/v4/projects/433/packages/npm/:_authToken=${KOODIVARAMU_TOKEN}' >> .npmrc"
-              }
+              sh "echo '//koodivaramu.eesti.ee/api/v4/projects/433/packages/npm/:_authToken=${KOODIVARAMU_TOKEN}' >> .npmrc"
               ["styles", "ui", "icons"].each {
                 sh "npx nx build ${it}"
                 sh "npm run publish:${it}"
