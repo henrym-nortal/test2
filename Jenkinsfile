@@ -15,7 +15,7 @@ pipeline {
     CYPRESS_DOWNLOAD_MIRROR = "https://nexus.riaint.ee/repository/cypress-raw-proxy/"
     PUBLIC_REGISTRY = "nexus.riaint.ee:8500"
     HARBOR_REGISTRY = "harbor.riaint.ee"
-    DOCKER_IMAGE = "riaee/sun-ria-storybook"
+    DOCKER_IMAGE = "e-gov/cvi/storybook"
     HARBOR_DOCKER_IMAGE = "${HARBOR_REGISTRY}/sun/sun-${APP_NAME}"
     HUSKY = 0
     NAMESPACE = "sun"
@@ -118,7 +118,6 @@ pipeline {
           }
           steps {
             script {
-              sh 'curl https://koodivaramu.eesti.ee/api/v4/projects/433/packages/npm/'
               sh 'echo "registry=https://koodivaramu.eesti.ee/api/v4/projects/433/packages/npm/" > .npmrc'
               sh "echo '//koodivaramu.eesti.ee/api/v4/projects/433/packages/npm/:_authToken=${KOODIVARAMU_TOKEN}' >> .npmrc"
 
@@ -152,7 +151,7 @@ pipeline {
             "-f ./libs/storybook/Dockerfile",
             "."
           ].join(" "))
-          docker.withRegistry("https://registry-1.docker.io/v2/", 'dockerhub-sun') {
+          docker.withRegistry("koodivaramu.eesti.ee:5050", 'koodivaramu-docker-registry') {
             dockerImage.push(env.DOCKER_IMAGE_TAG)
             dockerImage.push('latest')
           }
@@ -165,6 +164,26 @@ pipeline {
             sh "docker push ${HARBOR_DOCKER_IMAGE}:${DOCKER_IMAGE_TAG}"
             sh "docker push ${HARBOR_DOCKER_IMAGE}:latest"
           }
+        }
+      }
+    }
+
+    stage('deploy storybook to github pages') {
+      environment {
+        GITHUB_TOKEN = credentials('jenkins-cvi-github')
+      }
+      steps {
+        script {
+          sh '''
+          git config --global user.name 'sun-release-bot'
+          git config --global user.email 'sun-release-bot@example.com'
+          git remote set-url origin https://${GITHUB_TOKEN}@github.com/henrymae/test.git
+
+          npm config set registry https://nexus.riaint.ee/repository/npm-public/
+          npm install
+          npm run build-storybook
+          npx gh-pages -d dist/storybook/storybook --message 'chore: update github pages [skip ci]'
+          '''
         }
       }
     }
