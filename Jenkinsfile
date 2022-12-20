@@ -153,7 +153,7 @@ pipeline {
     stage('build and publish storybook docker image') {
       when {
         expression { !env.skip_ci }
-        expression { affected("storybook") }
+        //expression { affected("storybook") }
       }
       steps {
         script {
