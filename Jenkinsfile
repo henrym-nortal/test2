@@ -118,6 +118,7 @@ pipeline {
           }
           steps {
             script {
+              sh 'curl https://koodivaramu.eesti.ee/api/v4/projects/433/packages/npm/'
               sh 'echo "registry=https://koodivaramu.eesti.ee/api/v4/projects/433/packages/npm/" > .npmrc'
               sh "echo '//koodivaramu.eesti.ee/api/v4/projects/433/packages/npm/:_authToken=${KOODIVARAMU_TOKEN}' >> .npmrc"
 
