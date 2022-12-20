@@ -169,6 +169,11 @@ pipeline {
     }
 
     stage('deploy storybook to github pages') {
+      agent {
+        docker {
+          image 'nexus.riaint.ee:8500/node:lts'
+        }
+      }
       environment {
         GITHUB_TOKEN = credentials('jenkins-cvi-github')
       }
