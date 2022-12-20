@@ -129,6 +129,25 @@ pipeline {
             }
           }
         }
+        stage('publish storybook to github pages') {
+          environment {
+            GITHUB_TOKEN = credentials('jenkins-cvi-github')
+          }
+          steps {
+            script {
+              sh '''
+              git config --global user.name 'sun-release-bot'
+              git config --global user.email 'sun-release-bot@example.com'
+              git remote set-url origin https://${GITHUB_TOKEN}@github.com/henrymae/test.git
+
+              npm config set registry https://nexus.riaint.ee/repository/npm-public/
+              npm install
+              npm run build-storybook
+              npx gh-pages -d dist/storybook/storybook --message 'chore: update github pages [skip ci]'
+              '''
+            }
+          }
+        }
       }
     }
     stage('build and publish storybook docker image') {
@@ -164,31 +183,6 @@ pipeline {
             sh "docker push ${HARBOR_DOCKER_IMAGE}:${DOCKER_IMAGE_TAG}"
             sh "docker push ${HARBOR_DOCKER_IMAGE}:latest"
           }
-        }
-      }
-    }
-
-    stage('deploy storybook to github pages') {
-      agent {
-        docker {
-          image 'nexus.riaint.ee:8500/node:lts'
-        }
-      }
-      environment {
-        GITHUB_TOKEN = credentials('jenkins-cvi-github')
-      }
-      steps {
-        script {
-          sh '''
-          git config --global user.name 'sun-release-bot'
-          git config --global user.email 'sun-release-bot@example.com'
-          git remote set-url origin https://${GITHUB_TOKEN}@github.com/henrymae/test.git
-
-          npm config set registry https://nexus.riaint.ee/repository/npm-public/
-          npm install
-          npm run build-storybook
-          npx gh-pages -d dist/storybook/storybook --message 'chore: update github pages [skip ci]'
-          '''
         }
       }
     }
