@@ -101,6 +101,7 @@ pipeline {
             '''
           }
         }
+
         stage('release libraries') {
           steps {
             script {
@@ -136,15 +137,8 @@ pipeline {
             }
           }
         }
-        stage('release libraries') {
-          steps {
-            script {
-              env.previous_styles_library_version = getVersion("styles")
-              env.previous_ui_library_version = getVersion("ui")
-              env.previous_icons_library_version = getVersion("icons")
-            }
-          }
-        }
+
+
         stage('publish libraries') {
           environment {
             KOODIVARAMU_TOKEN = credentials('jenkins-cvi-koodivaramu')
