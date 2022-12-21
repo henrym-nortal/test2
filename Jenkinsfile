@@ -10,21 +10,15 @@ pipeline {
   }
 
   environment {
-    APP_NAME = 'ria-storybook'
+    APP_NAME = 'cvi-storybook'
     DOCKER_IMAGE_TAG = getStorybookImageTag()
-    CYPRESS_DOWNLOAD_MIRROR = "https://nexus.riaint.ee/repository/cypress-raw-proxy/"
-    PUBLIC_REGISTRY = "nexus.riaint.ee:8500"
-    HARBOR_REGISTRY = "harbor.riaint.ee"
+    RIA_INTERNAL_NEXUS_REGISTRY = "nexus.riaint.ee:8500"
+    RIA_INTERNAL_HARBOR_REGISTRY = "harbor.riaint.ee"
+    KOODIVARAMU_REGISTRY = "https://koodivaramu.eesti.ee:5050/egov"
     DOCKER_IMAGE = "e-gov/cvi/storybook"
-    HARBOR_DOCKER_IMAGE = "${HARBOR_REGISTRY}/sun/sun-${APP_NAME}"
+    RIA_INTERNAL_DOCKER_IMAGE = "${RIA_INTERNAL_HARBOR_REGISTRY}/sun/sun-${APP_NAME}"
     HUSKY = 0
     NAMESPACE = "sun"
-  }
-
-  parameters {
-    booleanParam(name: "PUBLISH_STYLES", description: "Publish styles (tag exists, but wasn't published before)", defaultValue: false)
-    booleanParam(name: "PUBLISH_UI", description: "Publish ui (tag exists, but wasn't published before)", defaultValue: false)
-    booleanParam(name: "PUBLISH_ICONS", description: "Publish icons (tag exists, but wasn't published before)", defaultValue: false)
   }
 
   stages {
@@ -92,6 +86,7 @@ pipeline {
       }
       environment {
         BITBUCKET = credentials('jenkins-bitbucket-webhook')
+        GITHUB_TOKEN = credentials('jenkins-cvi-github')
         HOME = "${env.WORKSPACE}"
       }
       stages {
@@ -99,9 +94,11 @@ pipeline {
           steps {
             sh "npm config set registry https://nexus.riaint.ee/repository/npm-public/"
             sh "npm ci"
-            sh "git config --global user.name 'semantic-release-bot'"
-            sh "git config --global user.email 'semantic-release-bot@example.com'"
-            sh "git remote set-url origin https://${BITBUCKET_USR}:${BITBUCKET_PSW}@stash.ria.ee/scm/sun/test.git"
+            sh '''
+            git config --global user.name 'sun-release-bot'
+            git config --global user.email 'sun-release-bot@example.com'
+            git remote set-url origin https://${GITHUB_TOKEN}@github.com/henrymae/test.git
+            '''
           }
         }
         stage('release libraries') {
@@ -162,27 +159,26 @@ pipeline {
           def ui_version = env.ui_library_version ?: getVersion("ui")
           def icons_version = env.icons_library_version ?: getVersion("icons")
           def dockerImage = docker.build(DOCKER_IMAGE, [
-            "--build-arg node_version=${PUBLIC_REGISTRY}/node:lts",
-            "--build-arg nginx_version=${PUBLIC_REGISTRY}/nginx:1.23.1-alpine",
-            "--build-arg alpine_version=${PUBLIC_REGISTRY}/alpine:3.14",
+            "--build-arg node_version=${RIA_INTERNAL_NEXUS_REGISTRY}/node:lts",
+            "--build-arg nginx_version=${RIA_INTERNAL_NEXUS_REGISTRY}/nginx:1.23.1-alpine",
+            "--build-arg alpine_version=${RIA_INTERNAL_NEXUS_REGISTRY}/alpine:3.14",
             "--build-arg styles_version=${styles_version}",
             "--build-arg ui_version=${ui_version}",
             "--build-arg icons_version=${icons_version}",
             "-f ./libs/storybook/Dockerfile",
             "."
           ].join(" "))
-          docker.withRegistry("https://koodivaramu.eesti.ee:5050/egov", 'koodivaramu-docker-registry') {
+          docker.withRegistry(env.KOODIVARAMU_REGISTRY, 'koodivaramu-docker-registry') {
             dockerImage.push(env.DOCKER_IMAGE_TAG)
             dockerImage.push('latest')
           }
 
-          // MFN requirement: replicate manually to harbor registry
-          docker.withRegistry("https://harbor.riaint.ee/sun", 'harbor-sun') {
-            sh "docker tag ${DOCKER_IMAGE} ${HARBOR_DOCKER_IMAGE}:${DOCKER_IMAGE_TAG}"
-            sh "docker tag ${DOCKER_IMAGE} ${HARBOR_DOCKER_IMAGE}:latest"
+          docker.withRegistry("https://${KOODIVARAMU_REGISTRY}/sun", 'harbor-sun') {
+            sh "docker tag ${DOCKER_IMAGE} ${RIA_INTERNAL_DOCKER_IMAGE}:${DOCKER_IMAGE_TAG}"
+            sh "docker tag ${DOCKER_IMAGE} ${RIA_INTERNAL_DOCKER_IMAGE}:latest"
 
-            sh "docker push ${HARBOR_DOCKER_IMAGE}:${DOCKER_IMAGE_TAG}"
-            sh "docker push ${HARBOR_DOCKER_IMAGE}:latest"
+            sh "docker push ${RIA_INTERNAL_DOCKER_IMAGE}:${DOCKER_IMAGE_TAG}"
+            sh "docker push ${RIA_INTERNAL_DOCKER_IMAGE}:latest"
           }
         }
       }
@@ -213,42 +209,4 @@ def isMaster() {
 
 def affected(String project) {
   return env.affected_libraries.split(', ').contains(project)
-}
-
-void deploy() {
-  checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false,
-  extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'deployment']], submoduleCfg: [],
-  userRemoteConfigs: [[credentialsId: 'jenkins-bitbucket-webhook', url: 'https://stash.ria.ee/scm/sun/helm-charts.git']]])
-
-  def ns = "sun-${ENV}"
-
-  docker.image('nexus.riaint.ee:8500/alpine/helm:3.9.4').inside('-u 0 --entrypoint= ') {
-    dir("deployment/${APP_NAME}") {
-      sh script: """
-      helm version
-      helm list -n ${NAMESPACE}
-      helm lint . -f values.yaml -f values-${ENV}.yaml
-
-      helm upgrade -n ${NAMESPACE} ${APP_NAME} . -f values.yaml  -f values-${ENV}.yaml --set image.tag=${DOCKER_IMAGE_TAG} --install --create-namespace --atomic --timeout 5m0s
-      helm list -n ${NAMESPACE} | grep ${APP_NAME}
-      """, label: "Deploy application";
-    }
-  }
-}
-
-def waitForUserApproval(Integer secondsToWait, String message) {
-  def approval = false
-
-  try {
-    timeout(time: secondsToWait, unit: 'SECONDS') {
-      approval = input(
-        id: 'Proceed1',
-        message: message,
-        parameters: [[$class: 'BooleanParameterDefinition', defaultValue: false, description: '', name: 'APPROVAL']]
-      )
-    }
-  } catch(org.jenkinsci.plugins.workflow.steps.FlowInterruptedException e) {
-    echo "Approval timout or aborted by user"
-  }
-  return approval;
 }
