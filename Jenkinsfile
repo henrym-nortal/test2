@@ -107,6 +107,41 @@ pipeline {
               env.previous_styles_library_version = getVersion("styles")
               env.previous_ui_library_version = getVersion("ui")
               env.previous_icons_library_version = getVersion("icons")
+
+              ["styles", "ui", "icons", "storybook"].each {
+                try {
+                  sh "npx nx run ${it}:version"
+                  if (it == 'storybook') {
+                    env.storybook_library_version = getVersion("storybook")
+                    echo "Current storybook version: ${env.storybook_library_version}"
+                  }
+                } catch (e) {
+                  def newVersion = getVersion(it)
+                  if (env."previous_${it}_library_version" == getVersion(it)) {
+                    throw e
+                  }
+                  def tag = "${it}-${newVersion}"
+                  def tagExists = sh ( script: "git tag -l ${tag}", returnStdout: true).trim()
+                  if (tagExists) {
+                    sh "git tag -d ${tag}"
+                    sh "git push origin :refs/tags/${tag}"
+                  }
+                  throw e
+                }
+
+                env.styles_library_version = getVersion("styles")
+                env.ui_library_version = getVersion("ui")
+                env.icons_library_version = getVersion("icons")
+              }
+            }
+          }
+        }
+        stage('release libraries') {
+          steps {
+            script {
+              env.previous_styles_library_version = getVersion("styles")
+              env.previous_ui_library_version = getVersion("ui")
+              env.previous_icons_library_version = getVersion("icons")
             }
           }
         }
