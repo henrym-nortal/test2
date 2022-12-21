@@ -54,6 +54,7 @@ pipeline {
       stages {
         stage('npm install') {
           steps {
+            sh 'curl https://koodivaramu.eesti.ee:5050/v2/'
             sh 'npm config set registry https://nexus.riaint.ee/repository/npm-public/'
             sh "npm ci"
           }
