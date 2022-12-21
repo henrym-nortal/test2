@@ -170,7 +170,7 @@ pipeline {
             "-f ./libs/storybook/Dockerfile",
             "."
           ].join(" "))
-          docker.withRegistry("koodivaramu.eesti.ee:5050", 'koodivaramu-docker-registry') {
+          docker.withRegistry("https://koodivaramu.eesti.ee:5050/egov", 'koodivaramu-docker-registry') {
             dockerImage.push(env.DOCKER_IMAGE_TAG)
             dockerImage.push('latest')
           }
