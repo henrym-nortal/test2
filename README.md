@@ -6,7 +6,8 @@ This project includes a pattern library and a re-usable component library for An
 
 Documentation and Installation instructions can be found in the Storybook:
 
-https://sundmusteenus-dev.eesti.ee/storybook/?path=/story/intro--page (will be replaced soon with a public version)
+https://henrymae.github.io/test/
+https://e-gov.github.io/cvi/
 
 Styles are based on the original Veera Design System:
 
@@ -42,12 +43,6 @@ docker build -f ./libs/storybook/Dockerfile -t ria-storybook .
 docker-compose up storybook
 docker-compose down
 url: http://localhost:3005/
-
-### Publishing to dockerhub locally
-
-docker build -f ./libs/storybook/Dockerfile -t ria-storybook .
-docker tag ria-storybook:latest riaee/sun-ria-storybook:latest
-docker push riaee/sun-ria-storybook:latest
 
 ## Understand your workspace
 
