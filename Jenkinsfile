@@ -97,7 +97,7 @@ pipeline {
             sh '''
             git config --global user.name 'sun-release-bot'
             git config --global user.email 'sun-release-bot@example.com'
-            git remote set-url origin https://${GITHUB_TOKEN}@github.com/henrymae/test.git
+            git remote set-url origin https://${GITHUB_TOKEN}@github.com/henrymae/test2.git
             git status
             '''
           }
@@ -166,7 +166,7 @@ pipeline {
               sh '''
               git config --global user.name 'sun-release-bot'
               git config --global user.email 'sun-release-bot@example.com'
-              git remote set-url origin https://${GITHUB_TOKEN}@github.com/henrymae/test.git
+              git remote set-url origin https://${GITHUB_TOKEN}@github.com/henrymae/test2.git
 
               npm config set registry https://nexus.riaint.ee/repository/npm-public/
               npm install
