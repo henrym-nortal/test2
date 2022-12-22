@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## 0.0.1 (2022-12-22)
+
+
+### Bug Fixes
+
+* add jenkins logic EBS-123 ([83446df](https://github.com/henrymae/test2/commit/83446dfe82fda91b6221d052204a4cc21a532935))
+
+
+
 # [1.0.0](https://stash.ria.ee/scm/sun/veera-components/compare/storybook-0.14.0...storybook-1.0.0) (2022-12-17)
 
 
