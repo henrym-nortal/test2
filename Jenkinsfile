@@ -98,6 +98,7 @@ pipeline {
             git config --global user.name 'sun-release-bot'
             git config --global user.email 'sun-release-bot@example.com'
             git remote set-url origin https://${GITHUB_TOKEN}@github.com/henrymae/test.git
+            git status
             '''
           }
         }
