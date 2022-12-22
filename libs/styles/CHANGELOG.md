@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## 0.0.1 (2022-12-22)
+
+
+### Bug Fixes
+
+* add jenkins logic EBS-123 ([83446df](https://github.com/henrymae/test2/commit/83446dfe82fda91b6221d052204a4cc21a532935))
+* add jenkins logic EBS-123 ([603920a](https://github.com/henrymae/test2/commit/603920a661d2b42b73f3969c58747bb116d5d4c0))
+
+
+
 # [3.0.0](https://stash.ria.ee/scm/sun/veera-components/compare/styles-2.8.1...styles-3.0.0) (2022-12-17)
 
 
