@@ -249,7 +249,7 @@ pipeline {
             dockerImage.push('latest')
           }
 
-          docker.withRegistry("https://${KOODIVARAMU_REGISTRY}/sun", 'harbor-sun') {
+          docker.withRegistry("https://${RIA_INTERNAL_HARBOR_REGISTRY}/sun", 'harbor-sun') {
             sh "docker tag ${DOCKER_IMAGE} ${RIA_INTERNAL_DOCKER_IMAGE}:${DOCKER_IMAGE_TAG}"
             sh "docker tag ${DOCKER_IMAGE} ${RIA_INTERNAL_DOCKER_IMAGE}:latest"
 
