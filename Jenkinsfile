@@ -239,18 +239,18 @@ pipeline {
             "-f ./libs/storybook/Dockerfile",
             "."
           ].join(" "))
-          //docker.withRegistry(env.KOODIVARAMU_REGISTRY, 'koodivaramu-docker-registry') {
-          //  dockerImage.push(env.DOCKER_IMAGE_TAG)
-          //  dockerImage.push('latest')  123
-          //}
+          docker.withRegistry(env.KOODIVARAMU_REGISTRY, 'koodivaramu-docker-registry') {
+            dockerImage.push(env.DOCKER_IMAGE_TAG)
+            dockerImage.push('latest')  123
+          }
 
-          //docker.withRegistry("https://${KOODIVARAMU_REGISTRY}/sun", 'harbor-sun') {
-          //  sh "docker tag ${DOCKER_IMAGE} ${RIA_INTERNAL_DOCKER_IMAGE}:${DOCKER_IMAGE_TAG}"
-          //  sh "docker tag ${DOCKER_IMAGE} ${RIA_INTERNAL_DOCKER_IMAGE}:latest"
+          docker.withRegistry("https://${KOODIVARAMU_REGISTRY}/sun", 'harbor-sun') {
+            sh "docker tag ${DOCKER_IMAGE} ${RIA_INTERNAL_DOCKER_IMAGE}:${DOCKER_IMAGE_TAG}"
+            sh "docker tag ${DOCKER_IMAGE} ${RIA_INTERNAL_DOCKER_IMAGE}:latest"
 
-          //  sh "docker push ${RIA_INTERNAL_DOCKER_IMAGE}:${DOCKER_IMAGE_TAG}"
-          //  sh "docker push ${RIA_INTERNAL_DOCKER_IMAGE}:latest"
-          //}
+            sh "docker push ${RIA_INTERNAL_DOCKER_IMAGE}:${DOCKER_IMAGE_TAG}"
+            sh "docker push ${RIA_INTERNAL_DOCKER_IMAGE}:latest"
+          }
         }
       }
     }
