@@ -196,6 +196,10 @@ pipeline {
               sh "echo '//koodivaramu.eesti.ee/api/v4/projects/433/packages/npm/:_authToken=${KOODIVARAMU_TOKEN}' >> .npmrc"
 
               ["styles", "ui", "icons"].each {
+                if (env."previous_${it}_library_version" == env."${it}_library_version" && !params."PUBLISH_${it.toUpperCase()}") {
+                  echo "${it} version ${getVersion(it)} is already published"
+                  return
+                }
                 sh "npx nx build ${it}"
                 sh "npm run publish:${it}"
                 echo "Published library ${it}"
@@ -203,6 +207,7 @@ pipeline {
             }
           }
         }
+
         stage('publish storybook to github pages') {
           environment {
             GITHUB_TOKEN = credentials('jenkins-cvi-github')
