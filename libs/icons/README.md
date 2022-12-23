@@ -13,3 +13,4 @@ Run `nx lint icons` to execute the lint via [ESLint](https://eslint.org/).
  34er
 re
 ERG
+ERG
