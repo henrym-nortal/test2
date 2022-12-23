@@ -10,4 +10,4 @@ Run `nx test icons` to execute the unit tests via [Jest](https://jestjs.io).
 
 Run `nx lint icons` to execute the lint via [ESLint](https://eslint.org/).
 123
- 34
+ 34er
