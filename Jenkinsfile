@@ -246,7 +246,7 @@ pipeline {
           ].join(" "))
           docker.withRegistry(env.KOODIVARAMU_REGISTRY, 'koodivaramu-docker-registry') {
             dockerImage.push(env.DOCKER_IMAGE_TAG)
-            dockerImage.push('latest')  123
+            dockerImage.push('latest')
           }
 
           docker.withRegistry("https://${KOODIVARAMU_REGISTRY}/sun", 'harbor-sun') {
