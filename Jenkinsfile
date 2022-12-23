@@ -72,9 +72,56 @@ pipeline {
         }
       }
     }
+    stage('cypress tests') {
+      when {
+         expression { !env.skip_ci }
+      }
+      agent {
+        docker {
+          image 'nexus.riaint.ee:8500/cypress/base:18.6.0'
+        }
+      }
+      environment {
+        HOME = "${env.WORKSPACE}"
+      }
+      steps {
+        sh 'npm config set registry https://nexus.riaint.ee/repository/npm-public/'
+        sh 'npm ci'
+        sh 'npm run generate-icons'
+        sh 'npm run storybook:compodoc'
+        sh 'npx nx run ui-e2e:e2e'
+      }
+      post {
+        always {
+          junit 'reports/cypress/*.xml'
+        }
+      }
+    }
+    stage('sonarqube analysis') {
+      when {
+        expression { !env.skip_ci }
+      }
+      agent {
+        docker {
+          image 'nexus.riaint.ee:8500/sonarsource/sonar-scanner-cli:4.6'
+          args "-u 0 -t"
+        }
+      }
+      steps {
+        withSonarQubeEnv('RIA SonarQube') {
+          sh "sonar-scanner"
+        }
+      }
+      post {
+        always {
+          sh "chmod -R 777 .";
+        }
+      }
+    }
     stage('release and publish libraries') {
       when {
         expression { !env.skip_ci }
+        expression { isMain() }
       }
       agent {
         docker {
@@ -174,6 +221,7 @@ pipeline {
     stage('build and publish storybook docker image') {
       when {
         expression { !env.skip_ci }
+        expression { isMain() }
         //expression { affected("storybook") }
       }
       steps {
@@ -215,7 +263,7 @@ pipeline {
 }
 
 def getStorybookImageTag() {
-  if (isMaster()) {
+  if (isMain()) {
     return env.storybook_library_version == null ? (getVersion("storybook") + '.1') : env.storybook_library_version
   }
   return env.CHANGE_BRANCH == null ? env.BRANCH_NAME : env.CHANGE_BRANCH
@@ -226,8 +274,8 @@ def getVersion(String libraryName) {
   return props.version
 }
 
-def isMaster() {
-  return env.BRANCH_NAME == "master"
+def isMain() {
+  return env.BRANCH_NAME == "main"
 }
 
 def affected(String project) {
