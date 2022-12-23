@@ -10,15 +10,13 @@ pipeline {
   }
 
   environment {
-    APP_NAME = 'cvi-storybook'
     DOCKER_IMAGE_TAG = getStorybookImageTag()
     RIA_INTERNAL_NEXUS_REGISTRY = "nexus.riaint.ee:8500"
     RIA_INTERNAL_HARBOR_REGISTRY = "harbor.riaint.ee"
     KOODIVARAMU_REGISTRY = "https://koodivaramu.eesti.ee:5050/egov"
     DOCKER_IMAGE = "e-gov/cvi/storybook"
-    RIA_INTERNAL_DOCKER_IMAGE = "${RIA_INTERNAL_HARBOR_REGISTRY}/sun/sun-${APP_NAME}"
+    RIA_INTERNAL_DOCKER_IMAGE = "${RIA_INTERNAL_HARBOR_REGISTRY}/sun/cvi-storybook"
     HUSKY = 0
-    NAMESPACE = "sun"
   }
 
   stages {
@@ -48,7 +46,6 @@ pipeline {
       stages {
         stage('npm install') {
           steps {
-            //sh 'curl https://koodivaramu.eesti.ee:5050/v2/' NO ACCESS
             sh 'npm config set registry https://nexus.riaint.ee/repository/npm-public/'
             sh "npm ci"
           }
@@ -90,15 +87,18 @@ pipeline {
         HOME = "${env.WORKSPACE}"
       }
       stages {
-        stage('git setup') {
+        stage('stage setup') {
           steps {
-            sh "npm config set registry https://nexus.riaint.ee/repository/npm-public/"
-            sh "npm ci"
             sh '''
-            git config --global user.name 'sun-release-bot'
-            git config --global user.email 'sun-release-bot@example.com'
+            npm config set registry https://nexus.riaint.ee/repository/npm-public/
+            npm ci
+            '''
+
+            sh '''
+            git config --global user.name 'egov-cvi-bot'
+            git config --global user.email 'egov-cvi-bot@egov.ee'
             git remote set-url origin https://${GITHUB_TOKEN}@github.com/henrymae/test2.git
-            git status
+            #git remote set-url origin https://${GITHUB_TOKEN}@github.com/e-gov/cvi.git
             '''
           }
         }
@@ -139,7 +139,6 @@ pipeline {
           }
         }
 
-
         stage('publish libraries') {
           environment {
             KOODIVARAMU_TOKEN = credentials('jenkins-cvi-koodivaramu')
@@ -164,12 +163,6 @@ pipeline {
           steps {
             script {
               sh '''
-              git config --global user.name 'sun-release-bot'
-              git config --global user.email 'sun-release-bot@example.com'
-              git remote set-url origin https://${GITHUB_TOKEN}@github.com/henrymae/test2.git
-
-              npm config set registry https://nexus.riaint.ee/repository/npm-public/
-              npm install
               npm run build-storybook
               npx gh-pages -d dist/storybook/storybook --message 'chore: update github pages [skip ci]'
               '''
@@ -198,18 +191,18 @@ pipeline {
             "-f ./libs/storybook/Dockerfile",
             "."
           ].join(" "))
-          docker.withRegistry(env.KOODIVARAMU_REGISTRY, 'koodivaramu-docker-registry') {
-            dockerImage.push(env.DOCKER_IMAGE_TAG)
-            dockerImage.push('latest')
-          }
+          //docker.withRegistry(env.KOODIVARAMU_REGISTRY, 'koodivaramu-docker-registry') {
+          //  dockerImage.push(env.DOCKER_IMAGE_TAG)
+          //  dockerImage.push('latest')
+          //}
 
-          docker.withRegistry("https://${KOODIVARAMU_REGISTRY}/sun", 'harbor-sun') {
-            sh "docker tag ${DOCKER_IMAGE} ${RIA_INTERNAL_DOCKER_IMAGE}:${DOCKER_IMAGE_TAG}"
-            sh "docker tag ${DOCKER_IMAGE} ${RIA_INTERNAL_DOCKER_IMAGE}:latest"
+          //docker.withRegistry("https://${KOODIVARAMU_REGISTRY}/sun", 'harbor-sun') {
+          //  sh "docker tag ${DOCKER_IMAGE} ${RIA_INTERNAL_DOCKER_IMAGE}:${DOCKER_IMAGE_TAG}"
+          //  sh "docker tag ${DOCKER_IMAGE} ${RIA_INTERNAL_DOCKER_IMAGE}:latest"
 
-            sh "docker push ${RIA_INTERNAL_DOCKER_IMAGE}:${DOCKER_IMAGE_TAG}"
-            sh "docker push ${RIA_INTERNAL_DOCKER_IMAGE}:latest"
-          }
+          //  sh "docker push ${RIA_INTERNAL_DOCKER_IMAGE}:${DOCKER_IMAGE_TAG}"
+          //  sh "docker push ${RIA_INTERNAL_DOCKER_IMAGE}:latest"
+          //}
         }
       }
     }
