@@ -2,6 +2,10 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.5](https://github.com/henrymae/test2/compare/icons-0.0.4...icons-0.0.5) (2023-01-02)
+
+
+
 ## [0.0.4](https://github.com/henrymae/test2/compare/icons-0.0.3...icons-0.0.4) (2022-12-23)
 
 
