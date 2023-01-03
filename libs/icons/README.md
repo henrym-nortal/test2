@@ -14,7 +14,7 @@ Run `nx lint icons` to execute the lint via [ESLint](https://eslint.org/).
 re
 ERG
 ERGerg
-th56u
+th56urth
 j
 sv
 erg
